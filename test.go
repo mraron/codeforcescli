@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,6 +16,7 @@ import (
 type Test struct {
 	Input  string
 	Output string
+	Status int
 }
 
 const (
@@ -74,18 +74,28 @@ func Tester(to TesterOptions) int {
 	return End
 }
 
-func Testcli(c *cli.Context) {
-	ValidateArgs(len(c.Args()), 2)
-
-	file, err := os.Open(c.Args()[0])
-	HandleError(err, "Hiba nem tudom megnyitni a json-t!")
-
+//TODO  --------- > CREATE AN INTERFACE FOR UNMARSHAL [x]
+/*func UnmarshalTests(file io.Reader) []Test {
 	content, err := ioutil.ReadAll(file)
 	HandleError(err, "Hiba nem tudom beolvasni a json-t!")
 
 	var tests []Test
 	err = json.Unmarshal(content, &tests)
 	HandleError(err, "Nem sikerült dekódolni a json fájlt!")
+
+	return tests
+}*
+ * OBSOLATE code
+*/
+
+func Testcli(c *cli.Context) {
+	ValidateArgs(len(c.Args()), 2)
+
+	file, err := os.Open(c.Args()[0])
+	HandleError(err, "Hiba nem tudom megnyitni a json-t!")
+
+	j := JSON{}
+	var tests = j.Unmarshal(file)
 
 	to := TesterOptions{w: os.Stdout, binary: c.Args()[1], timelimit: c.Int("timelimit"), verbose: c.Bool("verbose")}
 	for i, t := range tests {
@@ -96,13 +106,27 @@ func Testcli(c *cli.Context) {
 		switch output {
 		case WrongAnswer:
 			fmt.Println("[WA]")
+			tests[i].Status = WrongAnswer
 		case TimeLimitExceed:
 			fmt.Println("[TE]")
+			tests[i].Status = TimeLimitExceed
 		case Accepted:
 			fmt.Println("[AC]")
+			tests[i].Status = Accepted
 		case End:
 			fmt.Println("[??]")
+			tests[i].Status = End
 		}
 	}
 
+	//TODO CUSTOM MARSHAL!!
+	//	out, err := json.Marshal(tests)
+	//	HandleError(err, "...")
+	jsonout, err := os.Create(c.Args()[0])
+	HandleError(err, "...")
+
+	out := JSON{}
+	out.Marshal(jsonout, tests)
+	//_, err = jsonout.Write(out)
+	//HandleError(err, "...")
 }

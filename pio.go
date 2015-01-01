@@ -36,6 +36,7 @@ func GetProblem(num int, sub string) ([]Test, error) {
 
 		tests[l].Output, _ = s.Find("pre").Html()
 		tests[l].Output = BrToEndl(tests[l].Output)
+		tests[l].Status = -1
 		l++
 	})
 
@@ -62,7 +63,7 @@ func (j JsonPrinter) Print(w io.Writer, tests []Test) {
 	fmt.Fprintln(w, string(out))
 }
 
-func Pio(c *cli.Context) {
+func Problem(c *cli.Context) {
 	ValidateArgs(len(c.Args()), 2)
 
 	problem, _ := strconv.Atoi(c.Args()[0])

@@ -6,6 +6,30 @@ import (
 	"strings"
 )
 
+func StatusToColor(i int) string {
+	switch i {
+	case 0:
+		return "blue"
+	case 1:
+		return "orange"
+	case 2:
+		return "green"
+	}
+	return "grey"
+}
+
+func StatusToString(i int) string {
+	switch i {
+	case 0:
+		return "TE"
+	case 1:
+		return "WA"
+	case 2:
+		return "AC"
+	}
+	return "??"
+}
+
 func ValidateArgs(length, minimum int) {
 	if minimum > length {
 		fmt.Println("Túl kevés argumentum a megadott parancs futattásához, lásd codeforces help!")
@@ -21,11 +45,13 @@ func BrToEndl(s string) string {
 	return s
 }
 
+func EndlToBr(s string) string {
+	s = strings.Replace(s, "\n", "<br>", -1)
+	return s
+}
+
 func RemoveWhitespaces(s string) string {
-	s = strings.Replace(s, " ", "", -1)
-	s = strings.Replace(s, "\n", "", -1)
-	s = strings.Replace(s, "\r", "", -1)
-	s = strings.Replace(s, "\t", "", -1)
+	s = strings.TrimSpace(s)
 	return s
 }
 

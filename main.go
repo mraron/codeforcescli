@@ -18,16 +18,20 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
-			Name:      "problemio",
-			ShortName: "pio",
-			Usage:     "egy problém inputjának és outputjának megszerzése",
+			Name: "problem",
+			//ShortName: "pio",
+			Usage: "egy problém inputjának és outputjának megszerzése",
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "json",
 					Usage: "turn it on to have json output",
 				},
+				cli.BoolFlag{
+					Name:  "prettyjson",
+					Usage: "szépen formázott json",
+				},
 			},
-			Action: Pio,
+			Action: Problem,
 		},
 		{
 			Name:   "init",
@@ -49,6 +53,18 @@ func main() {
 				},
 			},
 			Action: Testcli,
+		},
+		{
+			Name:  "manager",
+			Usage: "egyedi teszt esetek hozzáadása egy teszt esetek tartalmazó json fájlhoz (webes felületen!)",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "port",
+					Value: "8080",
+					Usage: "milyen porton figyeljen a szerver",
+				},
+			},
+			Action: Manager,
 		},
 	}
 
