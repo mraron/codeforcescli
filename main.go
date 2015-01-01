@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -78,6 +79,38 @@ func RemoveWhitespaces(s string) string {
 	return s
 }
 
+func HandleError(e error, message string) {
+	if e != nil {
+		panic(message)
+	}
+}
+
+func HandleBoolError(b bool, message string) {
+	if b {
+		panic(message)
+	}
+}
+
+type Printer interface {
+	Print(*io.Writer, []Test)
+}
+
+type PrettyPrinter struct{}
+
+func (p PrettyPrinter) Print(w *io.Writer, tests []Test) {
+	for _, t := range tests {
+		fmt.Fprintf(w, "%s\nOutput\n======\n%s\n\n\n", t.Input, t.Output)
+	}
+}
+
+type JsonPrinter struct{}
+
+func (j JsonPrinter) Print(w *io.Writer, tests []Test) {
+	out, err := json.Marshal(tests)
+	HandleError(err, "nem tudtam létrehozni a json objektumot:", err.Error())
+	fmt.Fprintln(string(out))
+}
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "codeforces"
@@ -96,39 +129,24 @@ func main() {
 			},
 			Action: func(c *cli.Context) {
 				ValidateArgs(len(c.Args()), 2)
-				//if len(c.Args()) < 2 {
-				//	fmt.Println("Hiba még két argumentumot meg kell adni a helyes működéshez! a probléma számát és a probléma betűjelét")
-				//	return
-				//}
+
 				problem, _ := strconv.Atoi(c.Args()[0])
 				subproblem := c.Args()[1]
 
-				if problem < 1 {
-					fmt.Println("Hiba a probléma sorszáma nem lehet 1-nél kisebb!")
-					return
-				}
+				HandleErrorBool((problem < 1), "Hiba a probléma sorszáma nem lehet 1-nél kisebb!")
 
 				tests, err := GetProblem(problem, subproblem)
+				HandleError(err, err.Error())
 
-				if err != nil {
-					fmt.Println(err.Error())
-					return
-				}
+				var printer Printer
 
 				if c.Bool("json") {
-					out, err := json.Marshal(tests)
-					if err != nil {
-						fmt.Println("nem tudtam létrehozni a json objektumot:", err.Error())
-						return
-					}
-
-					fmt.Println(string(out))
+					printer = JsonPrinter{}
 				} else {
-					for _, t := range tests {
-						fmt.Printf("%s\nOutput\n======\n%s\n\n\n", t.Input, t.Output)
-					}
+					printer = PrettyPrinter{}
 				}
 
+				printer.Print(os.Stdout, tests)
 			},
 		},
 		{
