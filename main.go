@@ -107,7 +107,7 @@ type JsonPrinter struct{}
 
 func (j JsonPrinter) Print(w io.Writer, tests []Test) {
 	out, err := json.Marshal(tests)
-	HandleError(err, "nem tudtam létrehozni a json objektumot:"+err.Error())
+	HandleError(err, "nem tudtam létrehozni a json objektumot")
 	fmt.Fprintln(w, string(out))
 }
 
@@ -120,7 +120,7 @@ func Pio(c *cli.Context) {
 	HandleBoolError((problem < 1), "Hiba a probléma sorszáma nem lehet 1-nél kisebb!")
 
 	tests, err := GetProblem(problem, subproblem)
-	HandleError(err, err.Error())
+	HandleError(err, "..")
 
 	var printer Printer
 
@@ -129,7 +129,6 @@ func Pio(c *cli.Context) {
 	} else {
 		printer = PrettyPrinter{}
 	}
-
 	printer.Print(os.Stdout, tests)
 }
 
@@ -168,11 +167,11 @@ func Tester(to TesterOptions) int {
 	select {
 	case <-l:
 		o, _ := ioutil.ReadAll(&out)
-		if !to.verbose {
+		if to.verbose {
 			fmt.Fprintf(to.w, "\nANSWER\n")
 			fmt.Fprintf(to.w, "======\n\n%s", to.t.Output)
 			fmt.Fprintf(to.w, "\n\nYOUR ANSWER\n")
-			fmt.Fprintf(to.w, "===========\n\n%s\n\n", o)
+			fmt.Fprintf(to.w, "===========\n\n%s\n", o)
 		}
 		if RemoveWhitespaces(string(o)) == RemoveWhitespaces(to.t.Output) {
 			return Accepted
@@ -238,7 +237,7 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "verbose",
-					Usage: "ne legyen sok output",
+					Usage: "Bőbeszédű output",
 				},
 			},
 			Action: func(c *cli.Context) {
@@ -278,7 +277,7 @@ func main() {
 
 	app.Author = "Noszály Áron"
 	app.Email = "noszalyaron4@gmail.com"
-	app.Version = "v0.1.0"
+	app.Version = "v0.2.0"
 
 	app.Action = func(c *cli.Context) {
 		fmt.Println("don't know what to do, for help execute command \"codeforces help\" ;)")
