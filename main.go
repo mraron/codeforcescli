@@ -187,6 +187,27 @@ func Tester(to TesterOptions) int {
 	return End
 }
 
+func Init(c *cli.Context) {
+	ValidateArgs(len(c.Args()), 1)
+	CreateDefault(c.Args()[0], Default)
+}
+
+func CreateDefault(filename string, df string) {
+	file, err := os.Create(filename)
+	HandleError(err, "Hiba nem tudom megnyitni a fájlt")
+	defer file.Close()
+
+	d, err := os.Open(df)
+	HandleError(err, "Hiba nem tudom megnyitni az alapértelmezett fájlt")
+	defer d.Close()
+
+	dcontent, err := ioutil.ReadAll(d)
+	HandleError(err, "Hiba nem tudom beolvasni az alapértelmezett fájlt")
+
+	_, err = file.Write(dcontent)
+	HandleError(err, "Hiba nem tudom az alapértelmezett fájl tartalmát beleírni a fájlba")
+}
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "codeforces"
@@ -206,25 +227,9 @@ func main() {
 			Action: Pio,
 		},
 		{
-			Name:  "init",
-			Usage: "egy fájlt inicializál a " + Default + " alapján",
-			Action: func(c *cli.Context) {
-				ValidateArgs(len(c.Args()), 1)
-
-				file, err := os.Create(c.Args()[0])
-				HandleError(err, "Hiba nem tudom megnyitni a fájlt")
-				defer file.Close()
-
-				d, err := os.Open(Default)
-				HandleError(err, "Hiba nem tudom megnyitni az alapértelmezett fájlt")
-				defer d.Close()
-
-				dcontent, err := ioutil.ReadAll(d)
-				HandleError(err, "Hiba nem tudom beolvasni az alapértelmezett fájlt")
-
-				_, err = file.Write(dcontent)
-				HandleError(err, "Hiba nem tudom az alapértelmezett fájl tartalmát beleírni a fájlba")
-			},
+			Name:   "init",
+			Usage:  "egy fájlt inicializál a " + Default + " alapján",
+			Action: Init,
 		},
 		{
 			Name:  "test",
