@@ -57,7 +57,7 @@ func RemoveWhitespaces(s string) string {
 
 func HandleError(e error, message string) {
 	if e != nil {
-		panic(message)
+		panic(message + ": " + e.Error())
 	}
 }
 

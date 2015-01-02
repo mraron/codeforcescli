@@ -34,9 +34,10 @@ func GetProblem(num int, sub string) ([]Test, error) {
 	l := 0
 	doc.Find(".output").Each(func(i int, s *goquery.Selection) {
 
-		tests[l].Output, _ = s.Find("pre").Html()
-		tests[l].Output = BrToEndl(tests[l].Output)
+		tests[l].Answer, _ = s.Find("pre").Html()
+		tests[l].Answer = BrToEndl(tests[l].Answer)
 		tests[l].Status = -1
+		tests[l].Time = 1
 		l++
 	})
 
@@ -51,7 +52,7 @@ type PrettyPrinter struct{}
 
 func (p PrettyPrinter) Print(w io.Writer, tests []Test) {
 	for _, t := range tests {
-		fmt.Fprintf(w, "%s\nOutput\n======\n%s\n\n\n", t.Input, t.Output)
+		fmt.Fprintf(w, "%s\nAnswer\n======\n%s\n\n\n", t.Input, t.Answer)
 	}
 }
 

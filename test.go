@@ -15,7 +15,9 @@ import (
 
 type Test struct {
 	Input  string
+	Answer string
 	Output string
+	Time   int
 	Status int
 }
 
@@ -34,7 +36,7 @@ type TesterOptions struct {
 	t         Test
 }
 
-func Tester(to TesterOptions) int {
+func Tester(to TesterOptions) (int, []byte) {
 	cmd := exec.Command("./" + to.binary)
 
 	var out bytes.Buffer
@@ -53,25 +55,27 @@ func Tester(to TesterOptions) int {
 
 	select {
 	case <-l:
+
 		o, _ := ioutil.ReadAll(&out)
 		if to.verbose {
 			fmt.Fprintf(to.w, "\nANSWER\n")
-			fmt.Fprintf(to.w, "======\n\n%s", to.t.Output)
+			fmt.Fprintf(to.w, "======\n\n%s", to.t.Answer)
 			fmt.Fprintf(to.w, "\n\nYOUR ANSWER\n")
 			fmt.Fprintf(to.w, "===========\n\n%s\n", o)
 		}
-		if RemoveWhitespaces(string(o)) == RemoveWhitespaces(to.t.Output) {
-			return Accepted
+
+		if RemoveWhitespaces(string(o)) == RemoveWhitespaces(to.t.Answer) {
+			return Accepted, o
 		} else {
-			return WrongAnswer
+			return WrongAnswer, o
 
 		}
 	case <-time.After(time.Duration(int(time.Millisecond) * to.timelimit)):
-		return TimeLimitExceed
+		return TimeLimitExceed, []byte("")
 		cmd.Process.Kill()
 	}
 
-	return End
+	return End, []byte("")
 }
 
 //TODO  --------- > CREATE AN INTERFACE FOR UNMARSHAL [x]
@@ -102,7 +106,13 @@ func Testcli(c *cli.Context) {
 		to.t = t
 		fmt.Printf("TEST #%d\n", i+1)
 
-		output := Tester(to)
+		now := time.Now()
+
+		output, o := Tester(to)
+
+		tests[i].Time = int(time.Since(now))
+		tests[i].Output = string(o)
+
 		switch output {
 		case WrongAnswer:
 			fmt.Println("[WA]")

@@ -13,20 +13,20 @@ var tesztek []Test
 var testfile string
 
 func AddMenu(w io.Writer) {
-	io.WriteString(w, "<a href=\"/\">Home</a>|<a href=\"/reload\">Reload test file</a>|<a href=\"/flush\">Flush</a>|<a href=\"/quit\">Quit</a><br><br>")
+	io.WriteString(w, "<a href=\"/\">Home</a>|<a href=\"/reload\">Reload test file</a>|<a href=\"/insert\">Insert</a>|<a href=\"/quit\">Quit</a><br><br>")
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	AddMenu(w)
 	w.Header().Add("Content-Type", "text/html; charset=UTF-8")
-	io.WriteString(w, "<b>TESZT ESETEK</b><br><table border=\"2\"><tr><td>ID</td><td>INPUT</td><td>OUTPUT</td><td>STATUS</d><td>SETTINGS</td></tr>")
+	io.WriteString(w, "<b>TESZT ESETEK</b><br><table border=\"2\"><tr><td>ID</td><td>INPUT</td><td>YOUR OUTPUT</td><td>ANSWER</td><td>TIME</td><td>STATUS</td><td>SETTINGS</td></tr>")
 
 	var l int = 0
 	for i, t := range tesztek {
-		io.WriteString(w, "<tr><td>"+strconv.Itoa(i)+"</td><td>"+EndlToBr(t.Input)+"</td><td>"+EndlToBr(t.Output)+"</td><td bgcolor="+StatusToColor(t.Status)+">"+StatusToString(t.Status)+"</td><td><a href=\"/delete?id="+strconv.Itoa(i)+"\">DELETE</a> EDIT</td></tr>")
+		io.WriteString(w, "<tr><td>"+strconv.Itoa(i)+"</td><td>"+EndlToBr(t.Input)+"</td><td>"+EndlToBr(t.Output)+"</td><td>"+EndlToBr(t.Answer)+"</td><td>"+strconv.Itoa(t.Time/1000000)+"ms</td><td bgcolor="+StatusToColor(t.Status)+">"+StatusToString(t.Status)+"</td><td><a href=\"/delete?id="+strconv.Itoa(i)+"\">DELETE</a> EDIT</td></tr>")
 		l++
 	}
-	io.WriteString(w, "<tr><form method=\"post\" action=\"/add\"><td>"+strconv.Itoa(l)+"</td><td><textarea name=\"input\"></textarea></td><td><textarea name=\"output\"></textarea></td><td><input type=\"submit\"></td></form></tr>")
+	io.WriteString(w, "<tr><form method=\"post\" action=\"/add\"><td>"+strconv.Itoa(l)+"</td><td><textarea name=\"input\"></textarea></td><td></td><td><textarea name=\"answer\"></textarea></td><td><input type=\"submit\"></td></form></tr>")
 
 	io.WriteString(w, "</table>")
 }
@@ -49,15 +49,15 @@ func AddHandler(w http.ResponseWriter, r *http.Request) {
 	HandleError(err, ".....")
 
 	input := r.Form.Get("input")
-	output := r.Form.Get("output")
+	answer := r.Form.Get("answer")
 
-	test := Test{input, output, -1}
+	test := Test{Input: input, Answer: answer, Status: -1}
 	tesztek = append(tesztek, test)
 
 	http.Redirect(w, r, "/", 302)
 }
 
-func FlushHandler(w http.ResponseWriter, r *http.Request) {
+func InsertHandler(w http.ResponseWriter, r *http.Request) {
 	jsonout, err := os.Create(testfile)
 	HandleError(err, "...")
 
@@ -92,7 +92,7 @@ func Manager(c *cli.Context) {
 	http.HandleFunc("/quit", QuitHandler)
 	http.HandleFunc("/reload", ReloadHandler)
 	http.HandleFunc("/add", AddHandler)
-	http.HandleFunc("/flush", FlushHandler)
+	http.HandleFunc("/insert", InsertHandler)
 	http.HandleFunc("/delete", DeleteHandler)
 
 	err = http.ListenAndServe(":"+port, nil)
